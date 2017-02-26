@@ -2,11 +2,17 @@
 TEMPLATE_DIR=template
 APP_DIR=$1
 
-# Check if new app name only consists of letters and numbers. The directory name will be used for automatic container name generation, but some characters like "_" are not accepted
-#if ! [[ $APP_DIR =~ ^[A-Za-z0-9]+$ ]]; then
-#  echo "Please use only letters and numbers. The directory name will be used for automatic container name generation, but some characters like \"_\" are not accepted"
-#  exit 1
-#fi
+# Check if new app name only consists of letters and numbers. The directory name will be used by docker-compose for automatic container name generation, but some characters like "_" will be ignored
+if ! [[ $APP_DIR =~ ^[A-Za-z0-9]+$ ]]; then
+  while true; do
+    read -p "The directory name will be used by docker-compose for automatic container name generation, but some characters like "_" will be ignored. You can continue, but you will have to amend database.yml yourself to include the correct host name. Is that okay?" yn
+    case $yn in
+        [Yy]* ) break;;
+        [Nn]* ) exit 1;;
+        * ) echo "Please answer yes or no.";;
+    esac
+  done
+fi
 
 if [ ! -d "$APP_DIR" ]; then # directory doesn't exist, create
   mkdir $APP_DIR
@@ -15,10 +21,10 @@ else # directory already exists
     read -p "Directory already exists, do you still want to create a new application there?" yn
     case $yn in
         [Yy]* ) break;;
-        [Nn]* ) exit;;
+        [Nn]* ) exit 1;;
         * ) echo "Please answer yes or no.";;
     esac
-done 
+  done 
 fi
 
 cp -R $TEMPLATE_DIR/* $APP_DIR
